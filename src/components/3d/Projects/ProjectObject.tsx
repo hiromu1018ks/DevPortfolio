@@ -1,0 +1,146 @@
+'use client';
+
+import React, { useRef, useState } from 'react';
+import { useFrame } from '@react-three/fiber';
+import { Text } from '@react-three/drei';
+import * as THREE from 'three';
+import { COLORS } from '@/constants/colors';
+
+interface ProjectObjectProps {
+  position: [number, number, number];
+  projectId: string;
+  title: string;
+  description?: string;
+  onClick?: () => void;
+}
+
+const ProjectObject: React.FC<ProjectObjectProps> = ({
+  position,
+  projectId: _projectId, // eslint-disable-line @typescript-eslint/no-unused-vars
+  title,
+  description: _description, // eslint-disable-line @typescript-eslint/no-unused-vars
+  onClick
+}) => {
+  const meshRef = useRef<THREE.Mesh>(null);
+  const [hovered, setHovered] = useState(false);
+  const [clicked, setClicked] = useState(false);
+
+  useFrame((state) => {
+    if (meshRef.current) {
+      // Rotation animation
+      meshRef.current.rotation.x = state.clock.elapsedTime * 0.2;
+      meshRef.current.rotation.y = state.clock.elapsedTime * 0.3;
+      
+      // Hover effect
+      if (hovered) {
+        meshRef.current.scale.lerp(new THREE.Vector3(1.2, 1.2, 1.2), 0.1);
+      } else {
+        meshRef.current.scale.lerp(new THREE.Vector3(1, 1, 1), 0.1);
+      }
+      
+      // Click effect
+      if (clicked) {
+        meshRef.current.rotation.x += 0.1;
+        meshRef.current.rotation.y += 0.1;
+      }
+    }
+  });
+
+  const handleClick = () => {
+    setClicked(true);
+    setTimeout(() => setClicked(false), 300);
+    if (onClick) {
+      onClick();
+    }
+  };
+
+  return (
+    <group position={position}>
+      {/* Main project object */}
+      <mesh
+        ref={meshRef}
+        onClick={handleClick}
+        onPointerOver={() => setHovered(true)}
+        onPointerOut={() => setHovered(false)}
+      >
+        <boxGeometry args={[1, 1, 1]} />
+        <meshStandardMaterial
+          color={hovered ? COLORS.accent : COLORS.primary}
+          wireframe={hovered}
+          transparent={true}
+          opacity={hovered ? 0.8 : 0.6}
+          roughness={0.1}
+          metalness={0.2}
+        />
+      </mesh>
+      
+      {/* Project title */}
+      <Text
+        position={[0, -1.5, 0]}
+        fontSize={0.2}
+        color={COLORS.primary}
+        anchorX="center"
+        anchorY="middle"
+      >
+        {title}
+      </Text>
+      
+      {/* Orbiting elements */}
+      <OrbitingElements hovered={hovered} />
+    </group>
+  );
+};
+
+// Small elements that orbit around the main object
+const OrbitingElements: React.FC<{ hovered: boolean }> = ({ hovered }) => {
+  const orbitRef = useRef<THREE.Group>(null);
+  
+  useFrame((state) => {
+    if (orbitRef.current) {
+      orbitRef.current.rotation.y = state.clock.elapsedTime * (hovered ? 2 : 1);
+    }
+  });
+  
+  return (
+    <group ref={orbitRef}>
+      {/* Small cubes orbiting around */}
+      <mesh position={[1.5, 0, 0]}>
+        <boxGeometry args={[0.1, 0.1, 0.1]} />
+        <meshStandardMaterial
+          color={COLORS.accent}
+          transparent={true}
+          opacity={0.8}
+        />
+      </mesh>
+      
+      <mesh position={[-1.5, 0, 0]}>
+        <sphereGeometry args={[0.05, 8, 8]} />
+        <meshStandardMaterial
+          color={COLORS.primary}
+          transparent={true}
+          opacity={0.8}
+        />
+      </mesh>
+      
+      <mesh position={[0, 1.5, 0]}>
+        <tetrahedronGeometry args={[0.08]} />
+        <meshStandardMaterial
+          color={COLORS.accent}
+          transparent={true}
+          opacity={0.8}
+        />
+      </mesh>
+      
+      <mesh position={[0, -1.5, 0]}>
+        <octahedronGeometry args={[0.08]} />
+        <meshStandardMaterial
+          color={COLORS.primary}
+          transparent={true}
+          opacity={0.8}
+        />
+      </mesh>
+    </group>
+  );
+};
+
+export default ProjectObject;
