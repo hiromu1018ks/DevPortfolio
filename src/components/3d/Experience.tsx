@@ -68,17 +68,14 @@ const Experience: React.FC = () => {
           <ProjectObject 
             position={[-3, 0, 0]} 
             projectId="project-1"
-            title="Project One"
           />
           <ProjectObject 
             position={[0, 0, 0]} 
             projectId="project-2"
-            title="Project Two"
           />
           <ProjectObject 
             position={[3, 0, 0]} 
             projectId="project-3"
-            title="Project Three"
           />
         </group>
       )}

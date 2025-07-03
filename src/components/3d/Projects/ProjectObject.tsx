@@ -2,14 +2,12 @@
 
 import React, { useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Text } from '@react-three/drei';
 import * as THREE from 'three';
 import { COLORS } from '@/constants/colors';
 
 interface ProjectObjectProps {
   position: [number, number, number];
   projectId: string;
-  title: string;
   description?: string;
   onClick?: () => void;
 }
@@ -17,7 +15,6 @@ interface ProjectObjectProps {
 const ProjectObject: React.FC<ProjectObjectProps> = ({
   position,
   projectId: _projectId, // eslint-disable-line @typescript-eslint/no-unused-vars
-  title,
   description: _description, // eslint-disable-line @typescript-eslint/no-unused-vars
   onClick
 }) => {
@@ -66,24 +63,17 @@ const ProjectObject: React.FC<ProjectObjectProps> = ({
         <boxGeometry args={[1, 1, 1]} />
         <meshStandardMaterial
           color={hovered ? COLORS.accent : COLORS.primary}
-          wireframe={hovered}
-          transparent={true}
-          opacity={hovered ? 0.8 : 0.6}
-          roughness={0.1}
-          metalness={0.2}
+          wireframe={false}
+          transparent={false}
+          opacity={1}
+          roughness={0.4}
+          metalness={0.6}
         />
+        <lineSegments>
+          <edgesGeometry args={[new THREE.BoxGeometry(1, 1, 1)]} />
+          <lineBasicMaterial color={0xffffff} />
+        </lineSegments>
       </mesh>
-      
-      {/* Project title */}
-      <Text
-        position={[0, -1.5, 0]}
-        fontSize={0.2}
-        color={COLORS.primary}
-        anchorX="center"
-        anchorY="middle"
-      >
-        {title}
-      </Text>
       
       {/* Orbiting elements */}
       <OrbitingElements hovered={hovered} />
