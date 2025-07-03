@@ -19,8 +19,8 @@ body {
   font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
   font-weight: 400;
   overflow-x: hidden;
+  background-color: var(--color-base);
 }
 
 html {
-  scroll-behavior: smooth;
 }

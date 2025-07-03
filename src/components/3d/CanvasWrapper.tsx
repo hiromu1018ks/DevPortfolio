@@ -26,8 +26,9 @@ const CanvasWrapper: React.FC<CanvasWrapperProps> = ({
           antialias: true,
           alpha: true,
           powerPreference: 'high-performance',
-          clearColor: 'rgba(0,0,0,0)'
         }}
+        flat
+        color={COLORS.base}
         dpr={[1, 2]}
       >
         <Suspense fallback={null}>
