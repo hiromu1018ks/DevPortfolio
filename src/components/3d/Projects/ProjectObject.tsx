@@ -8,6 +8,7 @@ import { COLORS } from '@/constants/colors';
 interface ProjectObjectProps {
   position: [number, number, number];
   projectId: string;
+  title: string;
   description?: string;
   onClick?: () => void;
   scrollProgress: number;
@@ -17,6 +18,7 @@ interface ProjectObjectProps {
 const ProjectObject: React.FC<ProjectObjectProps> = ({
   position,
   projectId: _projectId, // eslint-disable-line @typescript-eslint/no-unused-vars
+  title: _title, // eslint-disable-line @typescript-eslint/no-unused-vars
   description: _description, // eslint-disable-line @typescript-eslint/no-unused-vars
   onClick,
   scrollProgress,
@@ -70,6 +72,8 @@ const ProjectObject: React.FC<ProjectObjectProps> = ({
       const material = meshRef.current.material as THREE.MeshStandardMaterial;
       material.opacity = THREE.MathUtils.lerp(0, 1, currentAnimationProgress);
       material.transparent = material.opacity < 1; // Set transparent if not fully opaque
+
+      console.log(`ProjectObject - scrollProgress: ${scrollProgress.toFixed(2)}, sectionProgress: ${sectionProgress.toFixed(2)}, animationProgress: ${currentAnimationProgress.toFixed(2)}, scale: ${scale.toFixed(2)}, opacity: ${material.opacity.toFixed(2)}`);
 
       // Apply to line material (edges)
       const lineMaterial = (meshRef.current.children[0] as THREE.LineSegments).material as THREE.LineBasicMaterial;

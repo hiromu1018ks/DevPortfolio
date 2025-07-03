@@ -42,6 +42,8 @@ const AboutObject: React.FC<AboutObjectProps> = ({
       const material = meshRef.current.material as THREE.MeshStandardMaterial;
       material.opacity = THREE.MathUtils.lerp(0, 0.7, currentAnimationProgress); // Max opacity 0.7
       material.transparent = material.opacity < 0.7; // Set transparent if not fully opaque
+
+      console.log(`AboutObject - scrollProgress: ${scrollProgress.toFixed(2)}, normalizedScroll: ${normalizedScroll.toFixed(2)}, animationProgress: ${currentAnimationProgress.toFixed(2)}, scale: ${scale.toFixed(2)}, opacity: ${material.opacity.toFixed(2)}`);
     }
   });
 

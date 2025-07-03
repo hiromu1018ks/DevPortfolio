@@ -13,13 +13,14 @@ export default function Home() {
       <section id="home" className="relative h-screen flex flex-col justify-center items-center text-center px-8">
         <div className="max-w-4xl bg-white/80 backdrop-blur-sm p-8 rounded-lg">
           <h1 className="text-5xl md:text-4xl font-semibold text-primary mb-6 tracking-tight leading-tight" style={{textShadow: '0px 1px 3px rgba(0, 0, 0, 0.15)'}}>
-            Morphing Geometric Canvas
+            Ready to build the future, one line at a time.
           </h1>
           <p className="text-xl md:text-lg text-text max-w-2xl leading-relaxed mb-8 mx-auto font-normal">
-            An interactive 3D portfolio experience where geometry comes alive through your interactions
+            このポートフォリオサイトは、私の学習意欲と技術への情熱を示すために作成しました。
+            インタラクティブな3D表現を通して、私の創造性と問題解決能力を感じ取っていただければ幸いです。
           </p>
           <button className="border-2 border-accent text-accent px-10 py-4 text-lg font-semibold hover:bg-accent hover:text-white transition-all duration-300">
-            Explore Projects
+            プロジェクトを見る
           </button>
         </div>
       </section>
@@ -31,7 +32,8 @@ export default function Home() {
             Featured Projects
           </h2>
           <p className="text-xl md:text-lg text-text mb-16 leading-relaxed font-normal">
-            Explore my work through interactive 3D objects. Click on any shape to learn more about the project.
+            これまでに制作したプロジェクトの一部をご紹介します。各プロジェクトは、私の技術スキルと課題解決へのアプローチを示しています。
+            3Dオブジェクトをクリックすると、詳細情報が表示されます。
           </p>
           
           {/* Project Grid (placeholder for 3D objects) */}
@@ -76,12 +78,12 @@ export default function Home() {
             About Me
           </h2>
           <p className="text-xl md:text-lg text-text mb-8 leading-relaxed font-normal">
-            I&apos;m a passionate developer who believes in the power of geometric beauty and interactive experiences. 
-            This portfolio itself is a testament to my philosophy: combining technical excellence with artistic vision.
+            私は未経験からITエンジニアを目指し、日々学習に励んでいます。特に、幾何学的な美しさとインタラクティブな体験を組み合わせることに情熱を注いでいます。
+            このポートフォリオサイト自体が、私の技術力とデザインへのこだわりを示すものです。
           </p>
           <p className="text-xl md:text-lg text-text leading-relaxed font-normal">
-            Through carefully crafted animations and user interactions, I create digital experiences that are both 
-            functional and inspiring.
+            丁寧なコードとユーザー体験を追求し、機能的かつ魅力的なデジタル体験を創造することを目指しています。
+            （ここに具体的な学習内容や、なぜエンジニアを目指しているのか、将来の展望などを記述してください。）
           </p>
         </div>
       </section>
@@ -93,14 +95,15 @@ export default function Home() {
             Get In Touch
           </h2>
           <p className="text-xl md:text-lg text-text mb-8 leading-relaxed font-normal">
-            Ready to bring your ideas to life? Let&apos;s create something extraordinary together.
+            私のスキルやプロジェクトにご興味をお持ちいただけましたら、ぜひお気軽にご連絡ください。
+            共に素晴らしいものを創造できることを楽しみにしています。
           </p>
           <div className="flex gap-4 justify-center">
             <button className="bg-accent text-white px-10 py-4 text-lg font-semibold hover:bg-blue-700 transition-colors duration-300">
-              Send Message
+              お問い合わせ
             </button>
             <button className="border-2 border-gray-400 text-primary px-10 py-4 text-lg font-semibold hover:bg-gray-100 transition-colors duration-300">
-              Download CV
+              履歴書をダウンロード
             </button>
           </div>
         </div>

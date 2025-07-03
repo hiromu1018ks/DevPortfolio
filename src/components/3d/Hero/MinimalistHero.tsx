@@ -16,7 +16,6 @@ const MinimalistHero: React.FC<MinimalistHeroProps> = ({
   scrollRange,
 }) => {
   const groupRef = useRef<THREE.Group>(null);
-  const particlesRef = useRef<THREE.Points>(null);
   const mousePosition = useRef({ x: 0, y: 0 });
   const [animationProgress, setAnimationProgress] = useState(0);
 
@@ -32,132 +31,45 @@ const MinimalistHero: React.FC<MinimalistHeroProps> = ({
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  // Particle system for morphing text formation
-  const particleCount = 200;
-  const particles = useMemo(() => {
-    const positions = new Float32Array(particleCount * 3);
-    const initialPositions = new Float32Array(particleCount * 3);
-    const targetPositions = new Float32Array(particleCount * 3);
-    
-    for (let i = 0; i < particleCount; i++) {
-      // Random initial positions
-      initialPositions[i * 3] = (Math.random() - 0.5) * 10;
-      initialPositions[i * 3 + 1] = (Math.random() - 0.5) * 10;
-      initialPositions[i * 3 + 2] = (Math.random() - 0.5) * 5;
+  // Random positions for scattered placement covering 80% of screen space
+  const randomPositions: { [key: string]: [number, number, number] } = useMemo(() => ({
+    cube: [Math.random() * 10 - 5, Math.random() * 7 - 3.5, Math.random() * 8 - 4],
+    grid: [Math.random() * 10 - 5, Math.random() * 7 - 3.5, Math.random() * 8 - 4],
+    triangle: [Math.random() * 10 - 5, Math.random() * 7 - 3.5, Math.random() * 8 - 4],
+    sphere: [Math.random() * 10 - 5, Math.random() * 7 - 3.5, Math.random() * 8 - 4],
+    dodecahedron: [Math.random() * 10 - 5, Math.random() * 7 - 3.5, Math.random() * 8 - 4],
+    connecting: [Math.random() * 8 - 4, Math.random() * 5 - 2.5, Math.random() * 8 - 4]
+  }), []);
 
-      positions[i * 3] = initialPositions[i * 3];
-      positions[i * 3 + 1] = initialPositions[i * 3 + 1];
-      positions[i * 3 + 2] = initialPositions[i * 3 + 2];
-      
-      // Target positions forming text-like structure
-      const angle = (i / particleCount) * Math.PI * 2;
-      const radius = 3;
-      targetPositions[i * 3] = Math.cos(angle) * radius + (Math.random() - 0.5) * 0.5;
-      targetPositions[i * 3 + 1] = Math.sin(angle) * 0.5 + (Math.random() - 0.5) * 0.5;
-      targetPositions[i * 3 + 2] = (Math.random() - 0.5) * 0.5;
-    }
-    
-    return { positions, initialPositions, targetPositions };
-  }, []);
-
-  useFrame((state) => {
+  useFrame(() => {
     if (groupRef.current) {
       // Subtle mouse influence
       groupRef.current.rotation.y = mousePosition.current.x * 0.1;
       groupRef.current.rotation.x = mousePosition.current.y * 0.05;
     }
-    
-    if (particlesRef.current) {
-      const positions = particlesRef.current.geometry.attributes.position.array as Float32Array;
-      const time = state.clock.elapsedTime;
 
-      const [startScroll, endScroll] = scrollRange;
-      const normalizedScroll = THREE.MathUtils.clamp(
-        (scrollProgress - startScroll) / (endScroll - startScroll),
-        0,
-        1
-      );
-
-      let currentAnimationProgress = 0;
-      if (normalizedScroll < 0.5) {
-        currentAnimationProgress = normalizedScroll * 2; // 0 to 1
-      } else {
-        currentAnimationProgress = (1 - normalizedScroll) * 2; // 1 to 0
-      }
-      setAnimationProgress(currentAnimationProgress);
-
-      // Deconstruction/Reconstruction based on animationProgress
-      const scatterFactor = 1 - currentAnimationProgress; // 0 when formed, 1 when scattered
-
-      for (let i = 0; i < particleCount; i++) {
-        const index = i * 3;
-        const initialX = particles.initialPositions[index];
-        const initialY = particles.initialPositions[index + 1];
-        const initialZ = particles.initialPositions[index + 2];
-
-        const targetX = particles.targetPositions[index];
-        const targetY = particles.targetPositions[index + 1];
-        const targetZ = particles.targetPositions[index + 2];
-
-        // Interpolate between initial (scattered) and target (formed) positions
-        let currentX = THREE.MathUtils.lerp(initialX, targetX, currentAnimationProgress);
-        let currentY = THREE.MathUtils.lerp(initialY, targetY, currentAnimationProgress);
-        let currentZ = THREE.MathUtils.lerp(initialZ, targetZ, currentAnimationProgress);
-
-        // Add scattering effect when animationProgress is low
-        const scatterStrength = 5; // How far particles scatter
-        const randomOffsetX = (Math.random() - 0.5) * scatterStrength;
-        const randomOffsetY = (Math.random() - 0.5) * scatterStrength;
-        const randomOffsetZ = (Math.random() - 0.5) * scatterStrength;
-
-        currentX += randomOffsetX * scatterFactor;
-        currentY += randomOffsetY * scatterFactor;
-        currentZ += randomOffsetZ * scatterFactor;
-
-        positions[index] = currentX;
-        positions[index + 1] = currentY;
-        positions[index + 2] = currentZ;
-
-        // Add subtle floating motion
-        positions[index + 1] += Math.sin(time + i * 0.1) * 0.001;
-      }
-      
-      particlesRef.current.geometry.attributes.position.needsUpdate = true;
-    }
+    // Always show geometric shapes (full visibility)
+    setAnimationProgress(1);
+    console.log(`MinimalistHero - scrollProgress: ${scrollProgress.toFixed(2)}, scrollRange: [${scrollRange[0].toFixed(2)}, ${scrollRange[1].toFixed(2)}], animationProgress: ${animationProgress.toFixed(2)}`);
   });
 
   return (
-    <group ref={groupRef} visible={animationProgress > 0}>
-      {/* Minimalist particle system */}
-      <points ref={particlesRef}>
-        <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            args={[particles.positions, 3]}
-            count={particleCount}
-            array={particles.positions}
-            itemSize={3}
-          />
-        </bufferGeometry>
-        <pointsMaterial
-          color={COLORS.primary}
-          size={0.02}
-          transparent
-          opacity={THREE.MathUtils.lerp(0, 0.8, animationProgress)} // Apply opacity based on animationProgress
-        />
-      </points>
-
+    <group ref={groupRef}>
       {/* Geometric elements - pure shapes */}
-      <GeometricShapes mousePosition={mousePosition} animationProgress={animationProgress} />
+      <GeometricShapes mousePosition={mousePosition} animationProgress={animationProgress} randomPositions={randomPositions} />
       
       {/* Additional geometric elements for richness */}
-      <EnhancedGeometry mousePosition={mousePosition} animationProgress={animationProgress} />
+      <EnhancedGeometry mousePosition={mousePosition} animationProgress={animationProgress} randomPositions={randomPositions} />
     </group>
   );
 };
 
 // Clean geometric shapes as per spec
-const GeometricShapes: React.FC<{ mousePosition: React.MutableRefObject<{ x: number; y: number }>, animationProgress: number }> = ({ mousePosition, animationProgress }) => {
+const GeometricShapes: React.FC<{ 
+  mousePosition: React.MutableRefObject<{ x: number; y: number }>, 
+  animationProgress: number,
+  randomPositions: { [key: string]: [number, number, number] }
+}> = ({ mousePosition, animationProgress, randomPositions }) => {
   const cubeRef = useRef<THREE.Mesh>(null);
   const lineRef = useRef<THREE.LineSegments>(null);
   const triangleRef = useRef<THREE.Mesh>(null);
@@ -177,7 +89,7 @@ const GeometricShapes: React.FC<{ mousePosition: React.MutableRefObject<{ x: num
       cubeRef.current.position.x = Math.sin(time * 0.5) * 2 + mousePosition.current.x * 0.5;
       cubeRef.current.position.y = Math.cos(time * 0.3) * 1 + mousePosition.current.y * 0.3;
       (cubeRef.current.material as THREE.MeshBasicMaterial).opacity = cubeOpacity;
-      (cubeRef.current.material as THREE.MeshBasicMaterial).transparent = cubeOpacity < 0.6;
+      (cubeRef.current.material as THREE.MeshBasicMaterial).transparent = true;
     }
     
     if (lineRef.current) {
@@ -185,12 +97,12 @@ const GeometricShapes: React.FC<{ mousePosition: React.MutableRefObject<{ x: num
       lineRef.current.position.x = -mousePosition.current.x * 0.3;
       lineRef.current.position.y = -mousePosition.current.y * 0.2;
       (lineRef.current.material as THREE.LineBasicMaterial).opacity = lineOpacity;
-      (lineRef.current.material as THREE.LineBasicMaterial).transparent = lineOpacity < 0.2;
+      (lineRef.current.material as THREE.LineBasicMaterial).transparent = true;
     }
 
     if (triangleRef.current) {
       (triangleRef.current.material as THREE.MeshBasicMaterial).opacity = opacity;
-      (triangleRef.current.material as THREE.MeshBasicMaterial).transparent = opacity < 0.7;
+      (triangleRef.current.material as THREE.MeshBasicMaterial).transparent = true;
     }
   });
 
@@ -199,14 +111,14 @@ const GeometricShapes: React.FC<{ mousePosition: React.MutableRefObject<{ x: num
     const geometry = new THREE.BufferGeometry();
     const vertices: number[] = [];
     
-    // Horizontal lines
-    for (let i = -5; i <= 5; i++) {
-      vertices.push(-5, i, 0, 5, i, 0);
+    // Horizontal lines (balanced grid)
+    for (let i = -4; i <= 4; i++) {
+      vertices.push(-4, i, 0, 4, i, 0);
     }
     
-    // Vertical lines
-    for (let i = -5; i <= 5; i++) {
-      vertices.push(i, -5, 0, i, 5, 0);
+    // Vertical lines (balanced grid)
+    for (let i = -4; i <= 4; i++) {
+      vertices.push(i, -4, 0, i, 4, 0);
     }
     
     geometry.setFromPoints(vertices.map((v, i) => 
@@ -223,34 +135,34 @@ const GeometricShapes: React.FC<{ mousePosition: React.MutableRefObject<{ x: num
   return (
     <group>
       {/* Wireframe cube */}
-      <mesh ref={cubeRef} position={[2, 0, -2]}>
-        <boxGeometry args={[0.8, 0.8, 0.8]} />
+      <mesh ref={cubeRef} position={randomPositions.cube as [number, number, number]}>
+        <boxGeometry args={[1.2, 1.2, 1.2]} />
         <meshBasicMaterial
           color={COLORS.accent}
           wireframe
           transparent
-          opacity={0.6}
+          opacity={0.8}
         />
       </mesh>
       
       {/* Grid lines */}
-      <lineSegments ref={lineRef} position={[-3, -1, -3]}>
+      <lineSegments ref={lineRef} position={randomPositions.grid as [number, number, number]}>
         <bufferGeometry {...gridGeometry} />
         <lineBasicMaterial
           color={COLORS.primary}
           transparent
-          opacity={0.2}
+          opacity={0.5}
         />
       </lineSegments>
       
       {/* Simple triangle */}
-      <mesh ref={triangleRef} position={[-2, 1, -1]}>
-        <coneGeometry args={[0.5, 1, 3]} />
+      <mesh ref={triangleRef} position={randomPositions.triangle as [number, number, number]}>
+        <coneGeometry args={[0.8, 1.6, 3]} />
         <meshBasicMaterial
           color={COLORS.accent}
           wireframe
           transparent
-          opacity={0.7}
+          opacity={0.9}
         />
       </mesh>
     </group>
@@ -258,14 +170,18 @@ const GeometricShapes: React.FC<{ mousePosition: React.MutableRefObject<{ x: num
 };
 
 // Enhanced geometry elements with more complex patterns
-const EnhancedGeometry: React.FC<{ mousePosition: React.MutableRefObject<{ x: number; y: number }>, animationProgress: number }> = ({ mousePosition, animationProgress }) => {
+const EnhancedGeometry: React.FC<{ 
+  mousePosition: React.MutableRefObject<{ x: number; y: number }>, 
+  animationProgress: number,
+  randomPositions: { [key: string]: [number, number, number] }
+}> = ({ mousePosition, animationProgress, randomPositions }) => {
   const complexShapeRef = useRef<THREE.Group>(null);
   const wireSphereRef = useRef<THREE.Mesh>(null);
   const dodecahedronRef = useRef<THREE.Mesh>(null);
   
   useFrame((state) => {
     const time = state.clock.elapsedTime;
-    const opacity = THREE.MathUtils.lerp(0, 0.4, animationProgress);
+    const opacity = 0.7; // Always show enhanced geometry with full opacity
     
     if (complexShapeRef.current) {
       complexShapeRef.current.rotation.x = time * 0.02 + mousePosition.current.y * 0.05;
@@ -278,49 +194,49 @@ const EnhancedGeometry: React.FC<{ mousePosition: React.MutableRefObject<{ x: nu
       wireSphereRef.current.rotation.x = time * 0.08;
       wireSphereRef.current.rotation.z = time * 0.06;
       (wireSphereRef.current.material as THREE.MeshBasicMaterial).opacity = opacity;
-      (wireSphereRef.current.material as THREE.MeshBasicMaterial).transparent = opacity < 0.4;
+      (wireSphereRef.current.material as THREE.MeshBasicMaterial).transparent = true;
     }
     
     if (dodecahedronRef.current) {
       dodecahedronRef.current.rotation.y = time * 0.04;
       dodecahedronRef.current.rotation.x = time * 0.07;
       (dodecahedronRef.current.material as THREE.MeshBasicMaterial).opacity = opacity;
-      (dodecahedronRef.current.material as THREE.MeshBasicMaterial).transparent = opacity < 0.4;
+      (dodecahedronRef.current.material as THREE.MeshBasicMaterial).transparent = true;
     }
   });
   
   return (
     <group ref={complexShapeRef}>
       {/* Wireframe sphere */}
-      <mesh ref={wireSphereRef} position={[4, 2, -4]}>
-        <sphereGeometry args={[1.2, 16, 16]} />
+      <mesh ref={wireSphereRef} position={randomPositions.sphere as [number, number, number]}>
+        <sphereGeometry args={[1.4, 16, 16]} />
         <meshBasicMaterial
           color={COLORS.primary}
           wireframe
           transparent
-          opacity={0.4}
+          opacity={0.7}
         />
       </mesh>
       
       {/* Dodecahedron */}
-      <mesh ref={dodecahedronRef} position={[-4, -1, -3]}>
-        <dodecahedronGeometry args={[0.8]} />
+      <mesh ref={dodecahedronRef} position={randomPositions.dodecahedron as [number, number, number]}>
+        <dodecahedronGeometry args={[1]} />
         <meshBasicMaterial
           color={COLORS.accent}
           wireframe
           transparent
-          opacity={0.4}
+          opacity={0.7}
         />
       </mesh>
       
       {/* Additional connecting lines */}
-      <ConnectingLines animationProgress={animationProgress} />
+      <ConnectingLines animationProgress={animationProgress} randomPositions={randomPositions} />
     </group>
   );
 };
 
 // Dynamic connecting lines between geometric shapes
-const ConnectingLines: React.FC<{ animationProgress: number }> = ({ animationProgress }) => {
+const ConnectingLines: React.FC<{ animationProgress: number, randomPositions: { [key: string]: [number, number, number] } }> = ({ animationProgress, randomPositions }) => {
   const linesRef = useRef<THREE.LineSegments>(null);
   
   const lineGeometry = useMemo(() => {
@@ -328,11 +244,11 @@ const ConnectingLines: React.FC<{ animationProgress: number }> = ({ animationPro
     const vertices: number[] = [];
     
     // Create dynamic line patterns
-    const lineCount = 20;
+    const lineCount = 16;
     for (let i = 0; i < lineCount; i++) {
       const angle = (i / lineCount) * Math.PI * 2;
       const radius1 = 2;
-      const radius2 = 4;
+      const radius2 = 3.5;
       
       vertices.push(
         Math.cos(angle) * radius1, Math.sin(angle) * radius1, 0,
@@ -353,19 +269,19 @@ const ConnectingLines: React.FC<{ animationProgress: number }> = ({ animationPro
   
   useFrame(() => {
     if (linesRef.current) {
-      const opacity = THREE.MathUtils.lerp(0, 0.3, animationProgress);
+      const opacity = THREE.MathUtils.lerp(0, 0.6, animationProgress); // Apply opacity based on animationProgress
       (linesRef.current.material as THREE.LineBasicMaterial).opacity = opacity;
-      (linesRef.current.material as THREE.LineBasicMaterial).transparent = opacity < 0.3;
+      (linesRef.current.material as THREE.LineBasicMaterial).transparent = opacity < 0.6;
     }
   });
   
   return (
-    <lineSegments ref={linesRef} position={[0, 0, -5]}>
+    <lineSegments ref={linesRef} position={randomPositions.connecting as [number, number, number]}>
       <bufferGeometry {...lineGeometry} />
       <lineBasicMaterial
         color={COLORS.primary}
         transparent
-        opacity={0.3}
+        opacity={0.6}
       />
     </lineSegments>
   );
