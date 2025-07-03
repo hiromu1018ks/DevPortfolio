@@ -10,17 +10,22 @@ interface ProjectObjectProps {
   projectId: string;
   description?: string;
   onClick?: () => void;
+  scrollProgress: number;
+  scrollRange: [number, number];
 }
 
 const ProjectObject: React.FC<ProjectObjectProps> = ({
   position,
   projectId: _projectId, // eslint-disable-line @typescript-eslint/no-unused-vars
   description: _description, // eslint-disable-line @typescript-eslint/no-unused-vars
-  onClick
+  onClick,
+  scrollProgress,
+  scrollRange,
 }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
   const [clicked, setClicked] = useState(false);
+  const [animationProgress, setAnimationProgress] = useState(0);
 
   useFrame((state) => {
     if (meshRef.current) {
@@ -40,6 +45,36 @@ const ProjectObject: React.FC<ProjectObjectProps> = ({
         meshRef.current.rotation.x += 0.1;
         meshRef.current.rotation.y += 0.1;
       }
+
+      // Disassemble/Reassemble animation based on scroll
+      const [startScroll, endScroll] = scrollRange;
+      const sectionProgress = THREE.MathUtils.clamp(
+        (scrollProgress - startScroll) / (endScroll - startScroll),
+        0,
+        1
+      );
+
+      let currentAnimationProgress = 0;
+      if (sectionProgress < 0.5) {
+        currentAnimationProgress = sectionProgress * 2; // 0 to 1
+      } else {
+        currentAnimationProgress = (1 - sectionProgress) * 2; // 1 to 0
+      }
+      setAnimationProgress(currentAnimationProgress);
+
+      // Apply to scale
+      const scale = THREE.MathUtils.lerp(0.1, 1, currentAnimationProgress);
+      meshRef.current.scale.set(scale, scale, scale);
+
+      // Apply to opacity
+      const material = meshRef.current.material as THREE.MeshStandardMaterial;
+      material.opacity = THREE.MathUtils.lerp(0, 1, currentAnimationProgress);
+      material.transparent = material.opacity < 1; // Set transparent if not fully opaque
+
+      // Apply to line material (edges)
+      const lineMaterial = (meshRef.current.children[0] as THREE.LineSegments).material as THREE.LineBasicMaterial;
+      lineMaterial.opacity = THREE.MathUtils.lerp(0, 1, currentAnimationProgress);
+      lineMaterial.transparent = lineMaterial.opacity < 1;
     }
   });
 
@@ -52,7 +87,7 @@ const ProjectObject: React.FC<ProjectObjectProps> = ({
   };
 
   return (
-    <group position={position}>
+    <group position={position} visible={animationProgress > 0}>
       {/* Main project object */}
       <mesh
         ref={meshRef}
@@ -76,18 +111,28 @@ const ProjectObject: React.FC<ProjectObjectProps> = ({
       </mesh>
       
       {/* Orbiting elements */}
-      <OrbitingElements hovered={hovered} />
+      <OrbitingElements hovered={hovered} animationProgress={animationProgress} />
     </group>
   );
 };
 
 // Small elements that orbit around the main object
-const OrbitingElements: React.FC<{ hovered: boolean }> = ({ hovered }) => {
+const OrbitingElements: React.FC<{ hovered: boolean, animationProgress: number }> = ({ hovered, animationProgress }) => {
   const orbitRef = useRef<THREE.Group>(null);
   
   useFrame((state) => {
     if (orbitRef.current) {
       orbitRef.current.rotation.y = state.clock.elapsedTime * (hovered ? 2 : 1);
+
+      // Apply opacity based on animationProgress
+      orbitRef.current.traverse((child) => {
+        if (child instanceof THREE.Mesh && child.material) {
+          if ('opacity' in child.material) {
+            (child.material as THREE.Material & { opacity: number }).opacity = animationProgress;
+            (child.material as THREE.Material & { transparent: boolean }).transparent = animationProgress < 1;
+          }
+        }
+      });
     }
   });
   

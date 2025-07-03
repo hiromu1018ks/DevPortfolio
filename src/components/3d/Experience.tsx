@@ -2,100 +2,65 @@
 
 import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { useScrollAnimation } from '@/hooks/useScrollAnimation';
+import { TransitioningParticles } from './TransitioningParticles';
 import MinimalistHero from './Hero/MinimalistHero';
 import ProjectObject from './Projects/ProjectObject';
+import AboutObject from './About/AboutObject';
 import { ANIMATION_SETTINGS } from '@/constants/scene';
 import * as THREE from 'three';
 
-const Experience: React.FC = () => {
-  const { scrollProgress } = useScrollAnimation();
-  
-  // Determine current section based on scroll progress
-  const getCurrentSection = () => {
-    if (scrollProgress < 0.3) return 'hero';
-    if (scrollProgress < 0.7) return 'projects';
-    return 'about';
-  };
-  
-  const currentSection = getCurrentSection();
+interface ExperienceProps {
+  scrollProgress: number;
+}
 
+const Experience: React.FC<ExperienceProps> = ({ scrollProgress }) => {
   const groupRef = useRef<THREE.Group>(null);
-  const [prevSection, setPrevSection] = React.useState(currentSection);
-  const transitionProgress = useRef(0);
 
-  // Handle section transitions with three.js animation
-  useFrame((state, delta) => {
-    if (prevSection !== currentSection) {
-      transitionProgress.current += delta * 2; // Transition speed
-      if (transitionProgress.current >= 1) {
-        setPrevSection(currentSection);
-        transitionProgress.current = 0;
-      }
-    }
+  // Define scroll ranges for each section
+  const heroScrollRange = [0, 0.4] as [number, number];
+  const projectsScrollRange = [0.2, 0.8] as [number, number];
+  const aboutScrollRange = [0.6, 1.0] as [number, number];
 
-    if (groupRef.current) {
-      // Smooth transitions based on scroll
-      const targetOpacity = transitionProgress.current > 0 ? 
-        1 - transitionProgress.current : 1;
-      
-      groupRef.current.traverse((child) => {
-        if (child instanceof THREE.Mesh && child.material) {
-          if ('opacity' in child.material) {
-            (child.material as THREE.Material & { opacity: number }).opacity = targetOpacity;
-          }
-        }
-      });
-    }
+  useFrame(() => {
+    // Main animation loop - individual components handle their own animations
   });
 
   return (
     <group ref={groupRef}>
-      {/* Hero Section 3D Elements */}
-      {(currentSection === 'hero' || prevSection === 'hero') && (
-        <group 
-          position={[0, currentSection === 'hero' ? 0 : -5, 0]}
-        >
-          <MinimalistHero />
-        </group>
-      )}
+      {/* Main transitioning particle system */}
+      <TransitioningParticles scrollProgress={scrollProgress} />
       
-      {/* Projects Section 3D Elements */}
-      {(currentSection === 'projects' || prevSection === 'projects') && (
-        <group 
-          position={[0, currentSection === 'projects' ? 0 : 5, 0]}
-        >
-          <ProjectObject 
-            position={[-3, 0, 0]} 
-            projectId="project-1"
-          />
-          <ProjectObject 
-            position={[0, 0, 0]} 
-            projectId="project-2"
-          />
-          <ProjectObject 
-            position={[3, 0, 0]} 
-            projectId="project-3"
-          />
-        </group>
-      )}
-      
-      {/* About Section */}
-      {(currentSection === 'about' || prevSection === 'about') && (
-        <group 
-          position={[0, currentSection === 'about' ? 0 : 10, 0]}
-        >
-          <mesh position={[0, 0, 0]}>
-            <sphereGeometry args={[1, 32, 32]} />
-            <meshStandardMaterial 
-              color="#0055FF" 
-              transparent={true}
-              opacity={0.7}
-              wireframe={true}
-            />
-          </mesh>
-        </group>
-      )}
+      {/* Hero Section 3D Elements - Geometric shapes */}
+      <group position={[0, 0, 0]}>
+        <MinimalistHero scrollProgress={scrollProgress} scrollRange={heroScrollRange} />
+      </group>
+
+      {/* Projects Section 3D Elements - Multiple geometric objects */}
+      <group position={[0, 0, 0]}>
+        <ProjectObject
+          position={[-3, 0, -2]}
+          projectId="project-1"
+          scrollProgress={scrollProgress}
+          scrollRange={projectsScrollRange}
+        />
+        <ProjectObject
+          position={[0, 0, -2]}
+          projectId="project-2"
+          scrollProgress={scrollProgress}
+          scrollRange={projectsScrollRange}
+        />
+        <ProjectObject
+          position={[3, 0, -2]}
+          projectId="project-3"
+          scrollProgress={scrollProgress}
+          scrollRange={projectsScrollRange}
+        />
+      </group>
+
+      {/* About Section 3D Elements */}
+      <group position={[0, 0, 0]}>
+        <AboutObject scrollProgress={scrollProgress} scrollRange={aboutScrollRange} />
+      </group>
       
       {/* Background particles that react to scroll */}
       <ParticleField scrollProgress={scrollProgress} />
